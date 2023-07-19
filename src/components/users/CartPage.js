@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios'
-import { makeStyles } from '@material-ui/core/styles';
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import { makeStyles } from "@material-ui/core/styles";
 
 import {
   Table,
@@ -13,31 +13,31 @@ import {
   Typography,
   Button,
   CardMedia,
-} from '@material-ui/core';
+} from "@material-ui/core";
 
 const useStyles = makeStyles({
   tableContainer: {
     maxWidth: 1600,
-    margin: '0 auto',
+    margin: "0 auto",
   },
   totalPrice: {
     marginTop: 20,
-    textAlign: 'right',
+    textAlign: "right",
     marginRight: 30,
   },
   checkoutButton: {
     marginTop: 20,
-    backgroundColor: 'green',
+    backgroundColor: "green",
     marginRight: 30,
-    textAlign: 'right',
-    color: 'white',
-    '&:hover': {
-      backgroundColor: '#006400',
+    textAlign: "right",
+    color: "white",
+    "&:hover": {
+      backgroundColor: "#006400",
     },
   },
   quantityButtons: {
-    display: 'flex',
-    alignItems: 'center',
+    display: "flex",
+    alignItems: "center",
   },
   decrementButton: {
     marginRight: 10,
@@ -46,46 +46,40 @@ const useStyles = makeStyles({
 
 const CartPage = () => {
   const classes = useStyles();
-  const[userId,setUserId]=useState("")
-const [items, setItems] = useState([]);
+  const [userId, setUserId] = useState("");
+  const [items, setItems] = useState([]);
 
-  const[imageitem,setImageitem]=useState(null)
+  useEffect(() => {
+    const getUser = () => {
+      let storedData = localStorage.getItem("ElectricUser");
+      let parsedData = JSON.parse(storedData);
+      console.log("parsed_Id", parsedData._id);
+      setUserId(parsedData._id);
+    };
 
-  // Dummy cart data
-  const [cartItems, setCartItems] = useState([
-    {
-      id: 1,
-      name: 'Product 1',
-      price: 9.99,
-      quantity: 2,
-      image: 'path_to_product_image_1',
-    },
-    {
-      id: 2,
-      name: 'Product 2',
-      price: 14.99,
-      quantity: 1,
-      image: 'path_to_product_image_2',
-    },
-    // Add more items as needed
-  ]);
+    getUser();
+  }, []);
 
-  const getUser=()=>{
-    let storedData = localStorage.getItem('ElectricUser');
-    let parsedData = JSON.parse(storedData);
-    console.log("parsed_Id",parsedData._id);
-    setUserId(parsedData._id)
-  }
-  const userCartProducts=async()=>{
-    
-    await axios.get(`http://localhost:8080/api/v1/users/view-cart/${userId}`).then((res)=>{
-      console.log("cart Products",res.data)
-      setItems(res.data.data)
-      console.log("itemssss",items);
-    }).catch((err)=>{
-      console.log(err)
-    })
-  }
+  useEffect(() => {
+    const userCartProducts = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:8080/api/v1/users/view-cart/${userId}`
+        );
+        const items1 = res.data.usercart;
+        const itemsArray = Object.values(items1);
+        console.log("cart Products", itemsArray);
+        setItems(itemsArray);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    if (userId) {
+      userCartProducts();
+    }
+  }, [userId]);
+
   function base64ToUint8Array(base64) {
     const binaryString = atob(base64);
     const length = binaryString.length;
@@ -95,136 +89,129 @@ const [items, setItems] = useState([]);
     }
     return uint8Array;
   }
+
   const loadImage = (image) => {
-    const uint8Array = base64ToUint8Array(image?.data);
-    console.log("imaaageeeeeee",uint8Array);
     if (image?.data) {
+      const uint8Array = base64ToUint8Array(image?.data);
       const blob = new Blob([Int8Array.from(uint8Array)], {
         type: image?.contentType,
       });
       const imageUrl = window.URL.createObjectURL(blob);
-      
       return imageUrl;
     }
     return null;
   };
-  // const loadImage=(image)=>{
-  //   const imageUrl = `http://localhost:8080/${image}`;
-  //   return imageUrl;
-  // }
-  
-
-useEffect(() => {
-  getUser();
-}, []);
-
-useEffect(() => {
-  if (userId) {
-    userCartProducts();
-  }
-}, [userId]);
-  // Calculate total amount
-const totalAmount = items?.reduce(
-  (acc, item) => acc + (item.price|| 0),
-  0
-);
- const totalAmountInteger = parseFloat(totalAmount).toFixed(2);
-
-
-  // Handle quantity increment
-  const handleIncrement = (itemId) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
+  const handleIncrement = async (itemId) => {
+    try {
+      // Make an API call to update the quantity in the backend
+      // For example, you might use an endpoint like:
+      // await axios.put(`http://localhost:8080/api/v1/users/update-cart/${userId}/${itemId}`, { quantity: newQuantity });
+      // After the successful update, update the state to reflect the changes
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item._id === itemId ? { ...item, count: item.count + 1 } : item
+        )
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  // Handle quantity decrement
-  const handleDecrement = (itemId) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === itemId && item.quantity > 1
-          ? { ...item, quantity: item.quantity - 1 }
-          : item
-      )
-    );
+  const handleDecrement = async (itemId) => {
+    try {
+      // Make an API call to update the quantity in the backend
+      // For example, you might use an endpoint like:
+      // await axios.put(`http://localhost:8080/api/v1/users/update-cart/${userId}/${itemId}`, { quantity: newQuantity });
+      // After the successful update, update the state to reflect the changes
+      setItems((prevItems) =>
+        prevItems.map((item) =>
+          item._id === itemId ? { ...item, count: Math.max(item.count - 1, 0) } : item
+        )
+      );
+    } catch (err) {
+      console.log(err);
+    }
   };
 
-  // Handle product removal
   const handleRemove = (itemId) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
+    setItems((prevItems) => prevItems.filter((item) => item.id !== itemId));
   };
 
   const handleCheckout = () => {
-    // Handle checkout logic here
-    console.log('Checkout');
+    console.log("Checkout");
   };
 
   return (
-    <div>
+    <div >
       <TableContainer component={Paper} className={classes.tableContainer}>
         <Table>
           <TableHead>
             <TableRow>
               <TableCell>Image</TableCell>
-              <TableCell>Product</TableCell>
+              <TableCell>Product Name</TableCell>
               <TableCell>Price</TableCell>
-              <TableCell>Quantity</TableCell>
-              <TableCell>Amount</TableCell>
+              <TableCell>Count</TableCell>
               <TableCell>Remove</TableCell>
             </TableRow>
           </TableHead>
-          
-            {items?.map((item) => (
-                <TableBody>
-              <TableRow key={item._id}>
-                <TableCell>
-               <CardMedia component="img" src={loadImage(item.image)} style={{width:"200px",height:"200px"}} alt="image" />
-                  {/* <img src={loadImage(item.image)}   alt={item.name} width={50} /> */}
-                </TableCell>
-                <TableCell>{item.name}</TableCell>
-                <TableCell>Rs {item.price.toFixed(2)}</TableCell>
-                <TableCell>
-                  <div className={classes.quantityButtons}>
+          <TableBody>
+  {items?.map((item) => (
+    <TableRow key={item._id} >
+      <TableCell>
+        {item.cproducts.map((product) => (
+          <CardMedia
+            key={product._id}
+            component="img"
+            src={loadImage(product.image)}
+            style={{ width: "200px", height: "200px" }}
+            alt="image"
+          />
+        ))}
+      </TableCell>
+      <TableCell>{item.cproducts[0].name.toString()}</TableCell>
+      <TableCell>Rs.{item.cproducts[0].price}</TableCell> {/* Add this line */}
+      <TableCell>
+      <div className={classes.quantityButtons}>
                     <Button
-                      onClick={() => handleDecrement(item.id)}
+                      onClick={() => handleDecrement(item._id)}
                       variant="outlined"
                       size="small"
+                      color="primary"
                       className={classes.decrementButton}
+                      disabled={item.count <= 1}
                     >
                       -
                     </Button>
-                    {item.quantity}
+                    <span style={{marginRight:"6px"}}>{item.count}</span>
                     <Button
-                      onClick={() => handleIncrement(item.id)}
+                      onClick={() => handleIncrement(item._id)}
                       variant="outlined"
                       size="small"
+                      color="primary"
                     >
                       +
                     </Button>
                   </div>
-                </TableCell>
-                <TableCell>Rs {parseInt(item.price).toFixed(2)}</TableCell>
-                <TableCell>
-                  <Button
-                    onClick={() => handleRemove(item.id)}
-                    variant="outlined"
-                    size="small"
-                    color="secondary"
-                  >
-                    Remove
-                  </Button>
-                </TableCell>
-              </TableRow>
-              </TableBody>
-            ))}
-          
+        </TableCell>
+      <TableCell>
+        <Button
+          onClick={() => handleRemove(item._id)}
+          variant="outlined"
+          size="small"
+          color="secondary"
+        >
+          Remove
+        </Button>
+      </TableCell>
+    </TableRow>
+  ))}
+</TableBody>
+
         </Table>
       </TableContainer>
 
       <Typography variant="h6" className={classes.totalPrice}>
-        Total: Rs {totalAmountInteger}
+        {/* Total: Rs {totalAmountInteger} */}
       </Typography>
 
       <Button

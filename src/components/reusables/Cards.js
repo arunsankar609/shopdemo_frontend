@@ -27,7 +27,7 @@ const ReusableCard = ({ products }) => {
     cardData.append("User",userId)
     cardData.append("Product",prodId)
     console.log("cartdata",cardData)
-  await axios.post("http://localhost:8080/api/v1/users/add-to-cart",{"User":userId,"Product":prodId}).then((res)=>{
+  await axios.post("http://localhost:8080/api/v1/users/add-to-cart",{"user":userId,"product":prodId}).then((res)=>{
       console.log("cartResponse",res)
     }).catch((err)=>{
       console.log("This is the error",err)
